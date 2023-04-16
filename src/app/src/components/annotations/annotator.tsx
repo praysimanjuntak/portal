@@ -49,6 +49,7 @@ import FileModal from "./filemodal";
 import AnnotatorSettings from "./utils/annotatorsettings";
 import FormatTimerSeconds from "./utils/timer";
 import { RegisteredModel } from "./model";
+import AnalyticsChart from "./analyticschart.jsx";
 
 type Point = [number, number];
 type MapType = L.DrawMap;
@@ -148,6 +149,8 @@ interface AnnotatorState {
     opacity: number;
   };
   currAnnotationPlaybackId: number;
+  isAnalyticsMode: boolean;
+  chartData: any;
 }
 
 /**
@@ -246,6 +249,8 @@ export default class Annotator extends Component<
         },
       },
       currAnnotationPlaybackId: 0,
+      isAnalyticsMode: false,
+      chartData: [],
     };
 
     this.toaster = new Toaster({}, {});
@@ -787,6 +792,7 @@ export default class Annotator extends Component<
       )
         .then(response => {
           if (this.currentAsset.url === asset.url && singleAnalysis) {
+            this.setState({ chartData: response.data.frames });
             const videoElement = this.videoOverlay.getElement();
             /**
              * Recursive Callback function that
@@ -967,6 +973,12 @@ export default class Annotator extends Component<
         settings.iou = value;
       }
       return { inferenceOptions: settings };
+    });
+  };
+
+  private handleChangeInAnalyticsMode = () => {
+    this.setState(prevState => {
+      return { isAnalyticsMode: !prevState.isAnalyticsMode };
     });
   };
 
@@ -1574,15 +1586,25 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
-              <ImageBar
-                ref={ref => {
-                  this.imagebarRef = ref;
-                }}
-                /* Only visible assets should be shown */
-                assetList={visibleAssets}
-                callbacks={{ selectAssetCallback: this.selectAsset }}
-                {...this.props}
-              />
+              {this.state.isAnalyticsMode ? (
+                <AnalyticsChart
+                  chartData={this.state.chartData}
+                  confidence={this.state.confidence}
+                  videoElement={this.videoOverlay.getElement()}
+                  callbacks={{ selectAssetCallback: this.selectAsset }}
+                  {...this.props}
+                />
+              ) : (
+                <ImageBar
+                  ref={ref => {
+                    this.imagebarRef = ref;
+                  }}
+                  /* Only visible assets should be shown */
+                  assetList={visibleAssets}
+                  callbacks={{ selectAssetCallback: this.selectAsset }}
+                  {...this.props}
+                />
+              )}
             </Card>
           </div>
 
@@ -1685,7 +1707,9 @@ export default class Annotator extends Component<
                 allowUserClose={true}
                 callbacks={{
                   HandleChangeInSettings: this.handleChangeInAdvancedSettings,
+                  HandleChangeInAnalyticsMode: this.handleChangeInAnalyticsMode,
                 }}
+                isAnalyticsMode={this.state.isAnalyticsMode}
                 {...this.props}
               />
             ) : null}

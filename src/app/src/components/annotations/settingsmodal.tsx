@@ -11,6 +11,7 @@ import {
   ControlGroup,
   RadioGroup,
   Radio,
+  Checkbox,
 } from "@blueprintjs/core";
 import classes from "./settingsmodal.module.css";
 
@@ -22,7 +23,9 @@ interface SettingsModalProps {
   onClose: () => void;
   callbacks: {
     HandleChangeInSettings: (value: any, key: string) => void;
+    HandleChangeInAnalyticsMode: () => void;
   };
+  isAnalyticsMode: boolean;
 }
 /**
  * @TODO Keechin for the tooltip information
@@ -70,6 +73,24 @@ export default class SettingsModal extends React.Component<SettingsModalProps> {
                 <Radio label="Video Only" value="video" />
                 <Radio label="Image and Video" value="both" />
               </RadioGroup>
+            </div>
+            <div className={classes.Section}>
+              <ControlGroup className={classes.SubTitle}>
+                <div>Analytics Mode</div>
+                <Tooltip
+                  content="Run in Analytics Mode with chart"
+                  position={Position.TOP}
+                >
+                  <Icon icon="help" className={classes.Icon} />
+                </Tooltip>
+              </ControlGroup>
+              <Checkbox
+                checked={this.props.isAnalyticsMode}
+                onChange={() => {
+                  this.props.callbacks.HandleChangeInAnalyticsMode();
+                }}
+                label="Analytics Mode"
+              />
             </div>
             <div className={classes.Section}>
               <ControlGroup className={classes.SubTitle}>

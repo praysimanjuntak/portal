@@ -1,2 +1,3 @@
 ./src/constants/*
 *.module.css
+./src/components/annotations/analyticschart.jsx
